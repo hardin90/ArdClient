@@ -94,9 +94,9 @@ jackson-core.jar graal-sdk.jar graaljs.jar tregex.jar truffle-api.jar" />
   </target>
   
   <target name="res-jar" depends="build-env" unless="has-res-jar">
-    <get src="http://game.havenandhearth.com/java/builtin-res.jar" dest="lib/builtin-res.jar"
+    <get src="http://game.havenandhearth.com/java/old-builtin-res.jar" dest="lib/builtin-res.jar"
 	 usetimestamp="true" />
-    <get src="http://game.havenandhearth.com/java/hafen-res.jar" dest="lib/hafen-res.jar"
+    <get src="http://game.havenandhearth.com/java/old-hafen-res.jar" dest="lib/hafen-res.jar"
 	 usetimestamp="true" />
   </target>
 
@@ -150,6 +150,11 @@ jackson-core.jar graal-sdk.jar graaljs.jar tregex.jar truffle-api.jar" />
       <fileset dir="lib/jogl-natives" includes="*.jar">
       </fileset>
     </copy>
+      <copy todir="build">
+          <fileset dir="build/lib" includes="**"/>
+      </copy>
+      <copy todir="build" file="lib/run.bat" />
+      <copy todir="build" file="lib/run.sh" />
   </target>
 
  <target name="dist" depends="rebuild">
