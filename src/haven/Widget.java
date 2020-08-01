@@ -34,17 +34,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.AbstractSet;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Set;
-import java.util.Stack;
-import java.util.TreeMap;
-import haven.MovableWidget;
+import java.util.*;
 
 import static haven.MovableWidget.VISIBLE_PER;
 
@@ -509,9 +499,13 @@ public class Widget {
     }
 
     public Coord parentpos(Widget in) {
-        if (in == this)
-            return (new Coord(0, 0));
-	return(parent.xlate(parent.parentpos(in).add(c), true));
+        try {
+            if (in == this)
+                return (new Coord(0, 0));
+            return(parent.xlate(parent.parentpos(in).add(c), true));
+        } catch (Exception e){
+            return new Coord(0,0);
+        }
     }
 
     public Coord rootpos() {
@@ -987,6 +981,10 @@ public class Widget {
 	this.c = c;
     }
 
+    public void move(Coord c, double ax, double ay) {
+        move(new Coord(c.x - (int) (sz.x * ax), c.y - (int) (sz.y * ay)));
+    }
+
     public void resize(Coord sz) {
         this.sz = sz;
         for (Widget ch = child; ch != null; ch = ch.next)
@@ -1271,4 +1269,13 @@ public class Widget {
         }
         return null;
     }
+
+	public <T extends Widget> ArrayList<T> getchilds(Class<T> c) {
+    	ArrayList<T> widgets = new ArrayList<>();
+		for (Widget wdg = child; wdg != null; wdg = wdg.next) {
+			if (c.isInstance(wdg))
+				widgets.add(c.cast(wdg));
+		}
+		return widgets;
+	}
 }

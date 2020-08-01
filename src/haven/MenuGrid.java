@@ -28,26 +28,20 @@ package haven;
 
 import haven.Resource.AButton;
 import haven.automation.*;
-import haven.automation.Discord;
-import haven.purus.*;
-import haven.automation.PepperBot;
+import haven.purus.Farmer;
+import haven.purus.StockpileFiller;
+import haven.purus.TroughFiller;
+import haven.purus.pbot.PBotAPI;
+import haven.purus.pbot.PBotUtils;
 
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.font.TextAttribute;
 import java.awt.image.BufferedImage;
-import haven.Resource.AButton;
-import haven.purus.pbot.PBotAPI;
-import haven.purus.pbot.PBotUtils;
-
-import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.*;
+import java.io.BufferedReader;
 import java.util.List;
+import java.util.*;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 public class MenuGrid extends Widget {
     public final static Coord bgsz = Inventory.invsq.sz().add(-1, -1);
@@ -454,7 +448,7 @@ public class MenuGrid extends Widget {
                     GameUI gui = gameui();
                     if(gui != null){
                         if (gui.getwnd("Steel Refueler") == null) {
-                            SteelRefueler sw = new SteelRefueler();
+                            SteelRefueler sw = new SteelRefueler(ui);
                             gui.map.steelrefueler = sw;
                             gui.add(sw, new Coord(gui.sz.x / 2 - sw.sz.x / 2, gui.sz.y / 2 - sw.sz.y / 2 - 200));
                             synchronized (GobSelectCallback.class) {
@@ -469,7 +463,7 @@ public class MenuGrid extends Widget {
                     GameUI gui = gameui();
                     if(gui != null){
                         if (gui.getwnd("Torch Lighter") == null) {
-                            LightWithTorch sw = new LightWithTorch(gui);
+                            LightWithTorch sw = new LightWithTorch(ui);
                             gui.map.torchlight = sw;
                             gui.add(sw, new Coord(gui.sz.x / 2 - sw.sz.x / 2, gui.sz.y / 2 - sw.sz.y / 2 - 200));
                             synchronized (GobSelectCallback.class) {
@@ -484,7 +478,7 @@ public class MenuGrid extends Widget {
                     GameUI gui = gameui();
                     if(gui != null){
                         if (gui.getwnd("Add Coal To Smelters") == null) {
-                            CoalToSmelters sw = new CoalToSmelters(gui);
+                            CoalToSmelters sw = new CoalToSmelters(ui);
                             gui.map.coaltosmelters = sw;
                             gui.add(sw, new Coord(gui.sz.x / 2 - sw.sz.x / 2, gui.sz.y / 2 - sw.sz.y / 2 - 200));
                             synchronized (GobSelectCallback.class) {
@@ -507,7 +501,7 @@ public class MenuGrid extends Widget {
                     GameUI gui = gameui();
                     if(gui != null){
                         if (gui.getwnd("Miner Alert") == null) {
-                            MinerAlert sw = new MinerAlert(gui);
+                            MinerAlert sw = new MinerAlert(ui);
                             gui.map.mineralert = sw;
                             gui.add(sw, new Coord(gui.sz.x / 2 - sw.sz.x / 2, gui.sz.y / 2 - sw.sz.y / 2 - 200));
                         }
@@ -610,7 +604,23 @@ public class MenuGrid extends Widget {
                     if(gui != null){
                         new Thread(new EquipSwordShield(gui), "EquipSwordShield").start();
                     }}
+        ));//
+        addSpecial(new SpecialPagina(this, "paginae::amber::bunnyshoes",
+                Resource.local().load("paginae/amber/bunnyshoes"),
+                (pag) -> {
+                    GameUI gui = gameui();
+                    if(gui != null){
+                        new Thread(new EquipSlippers(gui), "bunnyshoes").start();
+                    }}
         ));
+        addSpecial(new SpecialPagina(this, "paginae::amber::rusalka",
+                Resource.local().load("paginae/amber/rusalka"),
+                (pag) -> {
+                    GameUI gui = gameui();
+                    if(gui != null){
+                        new Thread(new EquipRusalka(gui), "rusalka").start();
+                    }}
+        ));//
         addSpecial(new SpecialPagina(this, "paginae::amber::slicecheese",
                 Resource.local().load("paginae/amber/SliceCheese"),
                 (pag) -> {
@@ -669,7 +679,7 @@ public class MenuGrid extends Widget {
                     GameUI gui = gameui();
                     if(gui != null){
                         if (gui.getwnd("Pepper Bot") == null) {
-                            PepperBotPro sw = new PepperBotPro(gui);
+                            PepperBotPro sw = new PepperBotPro(ui);
                             gui.map.pepperbotpro = sw;
                             gui.add(sw, new Coord(gui.sz.x / 2 - sw.sz.x / 2, gui.sz.y / 2 - sw.sz.y / 2 - 200));
                             synchronized (GobSelectCallback.class) {
@@ -708,7 +718,7 @@ public class MenuGrid extends Widget {
                 (pag) -> {
                     GameUI gui = gameui();
                     if(gui != null){
-                        Farmer f = new Farmer();
+                        Farmer f = new Farmer(ui);
                         Window w = f;
                         gui.add(w, new Coord(gui.sz.x/2 - w.sz.x/2, gui.sz.y/2 - w.sz.y/2 - 200));
                         synchronized (GobSelectCallback.class) {
@@ -722,7 +732,7 @@ public class MenuGrid extends Widget {
                 (pag) -> {
                     GameUI gui = gameui();
                     if(gui != null){
-                        TroughFiller tf = new TroughFiller();
+                        TroughFiller tf = new TroughFiller(ui);
                         gui.add(tf, new Coord(gui.sz.x / 2 - tf.sz.x / 2, gui.sz.y / 2 - tf.sz.y / 2 - 200));
                         synchronized (GobSelectCallback.class) {
                             gui.map.registerGobSelect(tf);
@@ -1222,7 +1232,7 @@ public class MenuGrid extends Widget {
                     gui.discordconnected = true;
                 }
             }else if (gui.discordconnected)
-                PBotUtils.sysMsg("Discord is already connected, you can only connect to one server at a time.",Color.white);
+                PBotUtils.sysMsg(ui, "Discord is already connected, you can only connect to one server at a time.",Color.white);
 
             if (Config.enablecrime && !GameUI.crimeon) {
                 gui.crimeautotgld = true;
